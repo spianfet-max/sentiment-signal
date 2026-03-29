@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentiment Signal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+:root{--bg:#0a0e14;--sf:#0f1419;--pn:#141b24;--bd:#1e2a38;--b2:#253345;--tx:#cdd9e5;--mu:#5c7089;--dm:#3a4f66;--on:#00d68f;--of:#ff4d4f;--am:#e8a838;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);min-height:100vh;padding:24px}
+.hdr{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.logo{width:30px;height:30px;background:var(--am);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.li{width:13px;height:13px;border:2.5px solid #0a0e14;border-radius:2px;position:relative}
+.li::after{content:'';position:absolute;top:2px;left:2px;width:4px;height:4px;background:#0a0e14;border-radius:1px}
+h1{font-family:var(--mono);font-size:14px;font-weight:500;letter-spacing:.08em;color:var(--am);text-transform:uppercase}
+.bdg{font-family:var(--mono);font-size:9px;color:var(--mu);border:1px solid var(--b2);padding:2px 7px;border-radius:3px}
+.ts{font-family:var(--mono);font-size:9px;color:var(--mu);margin-left:auto}
+ 
+.composite{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:20px;display:flex;flex-direction:column;align-items:center;margin-bottom:14px}
+.plabel{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--mu);margin-bottom:14px}
+.gsvg{width:100%;max-width:480px}
+.vlabel{font-family:var(--mono);font-size:28px;font-weight:600;margin-top:8px;color:var(--of)}
+.vsub{font-size:11px;color:var(--mu);margin-top:3px;font-family:var(--mono);text-align:center}
+ 
+.macro-band{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.mcard{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:12px 14px}
+.mc-lbl{font-family:var(--mono);font-size:9px;color:var(--mu);letter-spacing:.08em;margin-bottom:6px}
+.mc-val{font-family:var(--mono);font-size:18px;font-weight:300}
+.mc-chg{font-family:var(--mono);font-size:10px;margin-top:2px}
+ 
+.comp-panel{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:18px;margin-bottom:14px}
+.citem{display:grid;grid-template-columns:20px 1fr 48px;align-items:center;gap:10px;margin-bottom:8px}
+.cidx{font-family:var(--mono);font-size:9px;color:var(--mu);text-align:center}
+.ctrack{height:14px;background:var(--bd);border-radius:3px;position:relative;overflow:hidden}
+.cc{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--b2)}
+.cfl{position:absolute;right:50%;top:0;height:100%;border-radius:3px 0 0 3px}
+.cfr{position:absolute;left:50%;top:0;height:100%;border-radius:0 3px 3px 0}
+.csco{font-family:var(--mono);font-size:10px;text-align:right}
+.ctit{font-size:10px;color:var(--mu);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:30px;margin-top:-4px;margin-bottom:8px}
+ 
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-bottom:14px}
+.card{background:var(--sf);border:1px solid var(--bd);border-left-width:3px;border-radius:10px;padding:14px}
+.csl{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.csc{font-family:var(--mono);font-size:20px;font-weight:300}
+.cvt{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase}
+.ccnf{font-family:var(--mono);font-size:9px;color:var(--mu);margin-left:auto}
+.csrc{font-family:var(--mono);font-size:9px;color:var(--am);margin-bottom:3px}
+.chl{font-size:11px;font-weight:500;margin-bottom:5px;line-height:1.4}
+.csum{font-size:11px;line-height:1.6;color:var(--tx);opacity:.75;margin-bottom:8px}
+.sig{display:flex;gap:5px;align-items:flex-start;margin-bottom:3px}
+.sigq{font-family:var(--mono);font-size:10px;line-height:1.4}
+.mbr{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.mbl{font-family:var(--mono);font-size:9px;color:var(--mu);width:42px;flex-shrink:0}
+.mbt{flex:1;height:3px;background:var(--bd);border-radius:2px;overflow:hidden}
+.mbf{height:100%;border-radius:2px}
+.mbp{font-family:var(--mono);font-size:9px;color:var(--mu);width:26px;text-align:right}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+.tag{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px}
+.ton{background:rgba(0,214,143,.1);color:var(--on);border:1px solid rgba(0,214,143,.2)}
+.tof{background:rgba(255,77,79,.1);color:var(--of);border:1px solid rgba(255,77,79,.2)}
+.tne{background:rgba(232,168,56,.1);color:var(--am);border:1px solid rgba(232,168,56,.2)}
+.seclabel{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--mu);margin:14px 0 8px}
+.note{background:var(--pn);border:1px solid var(--b2);border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:10px;color:var(--mu);line-height:1.7;margin-bottom:14px}
+.note span{color:var(--am)}
+</style>
+</head>
+<body>
+ 
+<div class="hdr">
+  <div class="logo"><div class="li"></div></div>
+  <h1>Sentiment Signal</h1>
+  <span class="bdg">Bloomberg · Live</span>
+  <span class="ts">Updated: Sun 29 Mar 2026 · 10 sources</span>
+</div>
+ 
+<div class="note">
+  <span>&#9432;</span> Results pre-computed by Claude using live web search across Bloomberg. Ask Claude to <span>"refresh sentiment"</span> to re-run with today's latest headlines.
+</div>
+ 
+<!-- Macro snapshot -->
+<div class="macro-band">
+  <div class="mcard">
+    <div class="mc-lbl">S&P 500 (weekly)</div>
+    <div class="mc-val" style="color:var(--of)">&#8595; &#8722;1.7%</div>
+    <div class="mc-chg" style="color:var(--of)">Longest slide since 2022</div>
+  </div>
+  <div class="mcard">
+    <div class="mc-lbl">Nasdaq 100</div>
+    <div class="mc-val" style="color:var(--of)">Correction</div>
+    <div class="mc-chg" style="color:var(--of)">&#8722;10%+ from peak</div>
+  </div>
+  <div class="mcard">
+    <div class="mc-lbl">Brent Crude</div>
+    <div class="mc-val" style="color:var(--of)">$112</div>
+    <div class="mc-chg" style="color:var(--of)">Iran war premium</div>
+  </div>
+  <div class="mcard">
+    <div class="mc-lbl">USD/JPY</div>
+    <div class="mc-val" style="color:var(--of)">160.00</div>
+    <div class="mc-chg" style="color:var(--am)">Intervention risk</div>
+  </div>
+  <div class="mcard">
+    <div class="mc-lbl">Gold</div>
+    <div class="mc-val" style="color:var(--am)">~$4,750</div>
+    <div class="mc-chg" style="color:var(--of)">Pulled from bear mkt</div>
+  </div>
+  <div class="mcard">
+    <div class="mc-lbl">Bitcoin</div>
+    <div class="mc-val" style="color:var(--of)">~$70K</div>
+    <div class="mc-chg" style="color:var(--of)">Bear market / slides</div>
+  </div>
+</div>
+ 
+<!-- Composite gauge -->
+<div class="composite">
+  <div class="plabel">Composite Risk Signal</div>
+  <svg class="gsvg" viewBox="0 0 400 215" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ag" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="#ff4d4f"/>
+        <stop offset="33%"  stop-color="#ff7a2d"/>
+        <stop offset="50%"  stop-color="#e8a838"/>
+        <stop offset="67%"  stop-color="#8bc44a"/>
+        <stop offset="100%" stop-color="#00d68f"/>
+      </linearGradient>
+      <linearGradient id="abg" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="#ff4d4f" stop-opacity=".12"/>
+        <stop offset="50%"  stop-color="#e8a838" stop-opacity=".08"/>
+        <stop offset="100%" stop-color="#00d68f" stop-opacity=".12"/>
+      </linearGradient>
+    </defs>
+    <!-- tick marks -->
+    <g id="tks"></g>
+    <!-- arcs -->
+    <path id="abp" fill="none" stroke="url(#abg)" stroke-width="20" stroke-linecap="round"/>
+    <path id="afp" fill="none" stroke="url(#ag)"  stroke-width="20" stroke-linecap="round" stroke-dasharray="0 1000"/>
+    <!-- needle at -57 score: frac=(−57+100)/200=0.215 → deg=0.215*180−90=−51.3° -->
+    <g style="transform-origin:200px 162px;transform:rotate(-51.3deg)">
+      <polygon points="200,108 196,160 204,160" fill="#cdd9e5" opacity=".85"/>
+      <circle cx="200" cy="162" r="7"   fill="#1e2a38" stroke="#cdd9e5" stroke-width="1.5"/>
+      <circle cx="200" cy="162" r="2.5" fill="#e8a838"/>
+    </g>
+    <!-- labels -->
+    <text x="52"  y="178" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#ff4d4f" opacity=".85">RISK OFF</text>
+    <text x="348" y="178" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#00d68f" opacity=".85">RISK ON</text>
+    <text x="200" y="136" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#e8a838" opacity=".7">NEUTRAL</text>
+    <!-- score -->
+    <text x="200" y="205" text-anchor="middle" font-family="IBM Plex Mono" font-size="26" font-weight="300" fill="#cdd9e5">&#8722;57</text>
+  </svg>
+  <div class="vlabel">RISK OFF</div>
+  <div class="vsub">Strongly bearish composite · 10 Bloomberg sources · 29 Mar 2026</div>
+</div>
+ 
+<!-- Comparison bars -->
+<div class="comp-panel">
+  <div class="plabel" style="margin-bottom:14px">Source Comparison</div>
+  <div id="bars"></div>
+</div>
+ 
+<div class="seclabel">Individual Source Analysis</div>
+<div class="cards" id="cards"></div>
+ 
+<script>
+const CX=200,CY=162,R=112;
+function pt(a){return{x:CX+R*Math.cos(a),y:CY+R*Math.sin(a)};}
+function arc(a1,a2){const s=pt(a1),e=pt(a2);return`M${s.x} ${s.y}A${R} ${R} 0 0 1 ${e.x} ${e.y}`;}
+const full=arc(Math.PI,0);
+document.getElementById('abp').setAttribute('d',full);
+const af=document.getElementById('afp');
+af.setAttribute('d',full);
+const len=Math.PI*R;
+const score=-57, frac=(score+100)/200;
+af.setAttribute('stroke-dasharray',`${len*frac} ${len}`);
+const tg=document.getElementById('tks');
+for(let i=0;i<=10;i++){
+  const a=Math.PI-(i/10)*Math.PI;
+  const inn={x:CX+(R-14)*Math.cos(a),y:CY+(R-14)*Math.sin(a)};
+  const out={x:CX+(R+14)*Math.cos(a),y:CY+(R+14)*Math.sin(a)};
+  const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+  l.setAttribute('x1',inn.x);l.setAttribute('y1',inn.y);
+  l.setAttribute('x2',out.x);l.setAttribute('y2',out.y);
+  l.setAttribute('stroke','#1e2a38');l.setAttribute('stroke-width',i%5===0?'1.5':'0.8');
+  tg.appendChild(l);
+}
+ 
+function sc(s){return s>=30?'#00d68f':s>=10?'#8bc44a':s>=-9?'#e8a838':s>=-29?'#ff7a2d':'#ff4d4f';}
+function vt(s){return s>=30?'Risk On':s>=10?'Risk On':s>=-9?'Neutral':s>=-29?'Risk Off':'Risk Off';}
+ 
+const ARTICLES=[
+  {
+    score:-72, conf:91, src:'Markets', date:'27 Mar',
+    title:'S&P 500 logs longest weekly slide since 2022 on Iran war fears',
+    url:'https://www.bloomberg.com/news/articles/2026-03-26/stock-market-today-dow-s-p-live-updates',
+    summary:'Equity losses accelerated with the S&P 500 down 1.7% and Nasdaq 100 entering correction territory. Brent topped $112 as a protracted Iran war fuels stagflation fears. Short-dated Treasuries outperformed as the yield curve flattened.',
+    bull:8, bear:82, hedge:10,
+    bs:[{q:'Short-dated Treasuries outperformed longer maturities',w:'MED'},{q:'Dip-buyers begin emerging near S&P support',w:'LOW'}],
+    rs:[{q:'S&P 500 logs worst weekly run since 2022',w:'HIGH'},{q:'Nasdaq 100 enters correction, -10% from peak',w:'HIGH'},{q:'Brent topped $112 on war premium',w:'HIGH'}],
+    words:[{w:'correction',p:'bearish'},{w:'stagflation',p:'bearish'},{w:'oil-shock',p:'bearish'},{w:'risk-off',p:'bearish'},{w:'volatility',p:'bearish'},{w:'Treasuries',p:'neutral'},{w:'outperformed',p:'bullish'}],
+    themes:['Iran war','Energy shock','Equity correction'],
+    type:'Market wrap',
+  },
+  {
+    score:-65, conf:88, src:'Markets', date:'26 Mar',
+    title:"Trump won't commit to Iran ceasefire, S&P hits lowest since September",
+    url:'https://www.bloomberg.com/news/articles/2026-03-25/stock-market-today-dow-s-p-live-updates',
+    summary:"Trump's refusal to commit to a ceasefire renewed oil upside risk and pushed the S&P 500 to its lowest since September. Brent settled around $108. Higher energy prices deepened a Treasury selloff following a weak US note auction.",
+    bull:10, bear:78, hedge:12,
+    bs:[{q:'Iran briefly reiterated ceasefire terms, sparking relief',w:'LOW'}],
+    rs:[{q:'S&P 500 lowest since September',w:'HIGH'},{q:'Brent settled ~$108, inflation fear deepens',w:'HIGH'},{q:'Lackluster US Treasury auction',w:'MED'}],
+    words:[{w:'selloff',p:'bearish'},{w:'inflation',p:'bearish'},{w:'ceasefire-risk',p:'bearish'},{w:'Brent',p:'bearish'},{w:'lowest',p:'bearish'},{w:'auction',p:'neutral'}],
+    themes:['Geopolitics','Oil','Treasury supply'],
+    type:'Market wrap',
+  },
+  {
+    score:-68, conf:85, src:'Markets', date:'27 Mar',
+    title:'Gold dip-buyers arrive as bullion nears bear market territory',
+    url:'https://www.bloomberg.com/markets',
+    summary:'Gold fell to the brink of a bear market as elevated oil prices raised the probability of sustained higher rates, undermining the non-yielding metal. Dip-buyers provided limited support, but the macro backdrop of inflation without growth remains hostile.',
+    bull:15, bear:72, hedge:13,
+    bs:[{q:'Dip buyers arrest gold decline near support',w:'MED'}],
+    rs:[{q:'Gold near bear market, inflation erodes appeal',w:'HIGH'},{q:'Higher rates hostile for non-yielding assets',w:'HIGH'}],
+    words:[{w:'bear-market',p:'bearish'},{w:'inflation',p:'bearish'},{w:'higher-rates',p:'bearish'},{w:'dip-buyers',p:'bullish'},{w:'non-yielding',p:'bearish'},{w:'support',p:'neutral'}],
+    themes:['Gold','Rates','Inflation'],
+    type:'Markets',
+  },
+  {
+    score:-58, conf:87, src:'Markets', date:'26 Mar',
+    title:'Private credit turmoil has retail investors eyeing the exits',
+    url:'https://www.bloomberg.com/markets',
+    summary:'The once-niche private credit asset class is facing headwinds as retail investors move toward exits, raising concerns about liquidity in leveraged lending markets. Fund withdrawals are compounding anxiety about opacity and hidden risks in the sector.',
+    bull:12, bear:70, hedge:18,
+    bs:[{q:'Institutional demand remains relatively stable',w:'LOW'}],
+    rs:[{q:'Retail investors withdrawing from private credit',w:'HIGH'},{q:'Opacity and hidden risks stoking anxiety',w:'HIGH'},{q:'Liquidity concerns in leveraged lending',w:'MED'}],
+    words:[{w:'turmoil',p:'bearish'},{w:'exits',p:'bearish'},{w:'liquidity',p:'bearish'},{w:'leverage',p:'bearish'},{w:'opacity',p:'bearish'},{w:'withdrawals',p:'bearish'},{w:'headwinds',p:'bearish'}],
+    themes:['Private credit','Liquidity','Leverage'],
+    type:'Finance',
+  },
+  {
+    score:+28, conf:80, src:'Markets', date:'25 Mar',
+    title:'Stocks and bonds rise as US-Iran ceasefire talks gather momentum',
+    url:'https://www.bloomberg.com/news/articles/2026-03-24/stock-market-today-dow-s-p-live-updates',
+    summary:'The S&P 500 advanced for a second session as US diplomacy around Iran showed tangible progress, lifting risk assets. Brent fell toward $102 on ceasefire optimism. Treasuries pared March losses and gold climbed.',
+    bull:65, bear:20, hedge:15,
+    bs:[{q:'S&P 500 advances second day on ceasefire hopes',w:'HIGH'},{q:'Brent fell toward $102, easing energy inflation fears',w:'HIGH'},{q:'Treasuries pared month losses',w:'MED'}],
+    rs:[{q:'Iran rejected truce proposal and maintained strikes',w:'MED'}],
+    words:[{w:'ceasefire',p:'bullish'},{w:'diplomacy',p:'bullish'},{w:'advance',p:'bullish'},{w:'pared-losses',p:'bullish'},{w:'risk-on',p:'bullish'},{w:'Iran-strikes',p:'bearish'}],
+    themes:['Geopolitics','Risk rally','Oil'],
+    type:'Market wrap',
+  },
+  {
+    score:-55, conf:83, src:'Economics', date:'23 Mar',
+    title:'Gold and bitcoin fall as oil surge stokes rate-cut doubts',
+    url:'https://www.bnnbloomberg.ca/investing/market-outlook/2026/03/23/market-outlook-gold-and-bitcoin-fall-as-rate-fears-rise-on-oil-surge/',
+    summary:'Both gold and bitcoin are declining despite elevated geopolitical tensions, signalling a breakdown in their traditional safe-haven roles. Rising oil is fuelling inflation concerns and reducing likelihood of near-term rate cuts, pressuring non-yielding and risk assets simultaneously.',
+    bull:10, bear:75, hedge:15,
+    bs:[{q:'Geopolitical premium could support safe havens longer term',w:'LOW'}],
+    rs:[{q:'Safe-haven breakdown: gold and bitcoin both falling',w:'HIGH'},{q:'Rate cuts less likely as oil drives inflation',w:'HIGH'},{q:'Non-yielding assets lose relative attractiveness',w:'HIGH'}],
+    words:[{w:'safe-haven-breakdown',p:'bearish'},{w:'inflation',p:'bearish'},{w:'rate-fears',p:'bearish'},{w:'oil-surge',p:'bearish'},{w:'non-yielding',p:'bearish'},{w:'pressure',p:'bearish'}],
+    themes:['Safe havens','Monetary policy','Oil'],
+    type:'Macro',
+  },
+  {
+    score:-48, conf:78, src:'Crypto', date:'26 Mar',
+    title:'Bitcoin consolidates at $70K in bear market as war fuels risk aversion',
+    url:'https://www.bloomberg.com/latest/crypto',
+    summary:'Bitcoin remains in a bear market, consolidating near $70,000, as the Iran war fuels broad risk aversion. Gold sold off from historic highs on fears that an oil shock will drive inflation and rates higher. Portfolio rotation into Bitcoin from gold is limited and tactical.',
+    bull:22, bear:62, hedge:16,
+    bs:[{q:'Some tactical rotation from gold into Bitcoin',w:'LOW'},{q:'Bitcoin consolidating, not in free-fall',w:'LOW'}],
+    rs:[{q:'Bitcoin in bear market, $70K consolidation',w:'HIGH'},{q:'Risk aversion dragging all risk assets',w:'HIGH'}],
+    words:[{w:'bear-market',p:'bearish'},{w:'risk-aversion',p:'bearish'},{w:'consolidation',p:'neutral'},{w:'rotation',p:'neutral'},{w:'inflation',p:'bearish'},{w:'war',p:'bearish'}],
+    themes:['Crypto','Risk aversion','Safe havens'],
+    type:'Markets',
+  },
+  {
+    score:-62, conf:82, src:'Markets', date:'26 Mar',
+    title:'Yen weakens to 160 for first time since 2024 raising intervention fears',
+    url:'https://www.bloomberg.com/news/articles/2026-03-26/stock-market-today-dow-s-p-live-updates',
+    summary:'The yen fell to 160 per dollar, a level last seen in 2024, as oil-driven inflation pressures diverge from the Bank of Japan\'s still-accommodative stance. Intervention risk is rising sharply, adding a new tail risk for FX and Asian asset markets.',
+    bull:10, bear:74, hedge:16,
+    bs:[{q:'BOJ intervention could reverse yen weakness sharply',w:'MED'}],
+    rs:[{q:'USD/JPY at 160 — highest since 2024',w:'HIGH'},{q:'Intervention risk adds FX tail risk',w:'HIGH'},{q:'BOJ policy divergence vs global tightening bias',w:'HIGH'}],
+    words:[{w:'intervention-risk',p:'bearish'},{w:'yen-weakness',p:'bearish'},{w:'divergence',p:'bearish'},{w:'tail-risk',p:'bearish'},{w:'accommodation',p:'neutral'},{w:'oil-inflation',p:'bearish'}],
+    themes:['FX','BoJ','Intervention'],
+    type:'FX / Rates',
+  },
+  {
+    score:-50, conf:76, src:'Finance', date:'28 Mar',
+    title:'AI data centre borrowing boom raises credit concerns amid market stress',
+    url:'https://www.bloomberg.com/markets',
+    summary:"The $3 trillion AI data centre build-out is being financed increasingly through complex credit instruments at a time of rising rates and tightening credit conditions. Market stress is coinciding with elevated leverage in the tech financing stack.",
+    bull:28, bear:55, hedge:17,
+    bs:[{q:'AI investment supporting long-run productivity growth',w:'MED'},{q:'Strong demand underpins data centre financing',w:'MED'}],
+    rs:[{q:'Rising rates stress complex tech credit structures',w:'HIGH'},{q:'$3T build-out adds to credit market leverage',w:'MED'}],
+    words:[{w:'leverage',p:'bearish'},{w:'credit-stress',p:'bearish'},{w:'build-out',p:'bullish'},{w:'AI-demand',p:'bullish'},{w:'rates',p:'bearish'},{w:'complex-instruments',p:'bearish'}],
+    themes:['AI','Credit','Leverage'],
+    type:'Finance',
+  },
+  {
+    score:-45, conf:74, src:'Politics', date:'29 Mar',
+    title:'Partial US government shutdown adds policy uncertainty to market stress',
+    url:'https://www.bloomberg.com/markets',
+    summary:"A partial US government shutdown is adding a layer of policy uncertainty on top of existing market stress from the Iran war and oil shock. TSA and other agency disruptions are compounding the negative sentiment backdrop.",
+    bull:12, bear:65, hedge:23,
+    bs:[{q:'Political pressure may force rapid resolution',w:'LOW'}],
+    rs:[{q:'Government shutdown adds policy uncertainty',w:'HIGH'},{q:'Coincides with war and oil-shock market stress',w:'HIGH'}],
+    words:[{w:'shutdown',p:'bearish'},{w:'uncertainty',p:'bearish'},{w:'policy-risk',p:'bearish'},{w:'disruption',p:'bearish'},{w:'resolution',p:'bullish'},{w:'compounding',p:'bearish'}],
+    themes:['Politics','Fiscal','Risk'],
+    type:'Politics',
+  },
+];
+ 
+const BARS=document.getElementById('bars');
+const CARDS=document.getElementById('cards');
+ 
+ARTICLES.forEach((a,i)=>{
+  const col=sc(a.score), pos=a.score>=0, pct=Math.abs(a.score)/2;
+  const bw=document.createElement('div');
+  bw.innerHTML=`<div class="citem"><span class="cidx">${i+1}</span><div class="ctrack"><div class="cc"></div><div class="cfl" style="background:rgba(255,77,79,.45);width:${pos?0:pct}%"></div><div class="cfr" style="background:rgba(0,214,143,.45);width:${pos?pct:0}%"></div></div><span class="csco" style="color:${col}">${a.score>0?'+':''}${a.score}</span></div><div class="ctit">${a.title}</div>`;
+  BARS.appendChild(bw);
+ 
+  const bsHtml=(a.rs||[]).filter(s=>s.w==='HIGH').slice(0,1).map(s=>`<div class="sig"><span style="color:#ff4d4f;font-size:9px;margin-top:1px">&#9660;</span><span class="sigq">${s.q}</span></div>`).join('')+
+               (a.bs||[]).filter(s=>s.w==='HIGH').slice(0,1).map(s=>`<div class="sig"><span style="color:#00d68f;font-size:9px;margin-top:1px">&#9650;</span><span class="sigq">${s.q}</span></div>`).join('');
+ 
+  const wt=(a.words||[]).slice(0,8).map(w=>`<span class="tag ${w.p==='bullish'?'ton':w.p==='bearish'?'tof':'tne'}">${w.w}</span>`).join('');
+ 
+  const card=document.createElement('div');
+  card.className='card';
+  card.style.borderLeftColor=col;
+  card.innerHTML=`<div class="csl"><span class="csc" style="color:${col}">${a.score>0?'+':''}${a.score}</span><span class="cvt" style="color:${col}">${vt(a.score)}</span><span class="ccnf">conf.${a.conf}%</span></div><div class="csrc">${a.src} · ${a.date}</div><div class="chl"><a href="${a.url}" style="color:var(--tx);text-decoration:none">${a.title}</a></div><p class="csum">${a.summary}</p>${bsHtml?`<div style="margin-bottom:8px">${bsHtml}</div>`:''}<div><div class="mbr"><span class="mbl">Bullish</span><div class="mbt"><div class="mbf" style="background:#00d68f;width:${a.bull}%"></div></div><span class="mbp">${a.bull}%</span></div><div class="mbr"><span class="mbl">Bearish</span><div class="mbt"><div class="mbf" style="background:#ff4d4f;width:${a.bear}%"></div></div><span class="mbp">${a.bear}%</span></div><div class="mbr"><span class="mbl">Hedging</span><div class="mbt"><div class="mbf" style="background:#e8a838;width:${a.hedge}%"></div></div><span class="mbp">${a.hedge}%</span></div></div><div class="tags">${wt}</div><div style="margin-top:8px;font-family:var(--mono);font-size:9px;color:var(--dm)">${a.themes.join(' · ')} · ${a.type}</div>`;
+  CARDS.appendChild(card);
+});
+</script>
+</body>
+</html>
+ 
